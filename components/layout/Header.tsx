@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Logo } from "@/components/Logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,18 +28,10 @@ export function Header() {
 
   const [searchValue, setSearchValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-
   const [isDark, setIsDark] = useState(
     () => localStorage.getItem('theme') !== 'light'
   );
-
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    localStorage.setItem('theme', next ? 'dark' : 'light');
-    document.documentElement.classList.toggle('light', !next);
-  };
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const displayName = profile?.full_name || profile?.email || "Usuário";
   const initials = displayName
@@ -47,6 +40,13 @@ export function Header() {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    document.documentElement.classList.toggle('light', !next);
+  };
   const roleLabel: Record<string, string> = {
     owner: "Proprietário",
     admin: "Administrador",
@@ -102,9 +102,7 @@ export function Header() {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="gap-2 text-foreground hover:bg-secondary">
-            <div className="w-8 h-8 rounded-lg bg-gradient-premium flex items-center justify-center">
-              <Building2 className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <Logo size={28} />
             <div className="flex flex-col items-start">
               <span className="font-semibold text-sm">{currentWorkspace.name}</span>
               <span className="text-[10px] text-muted-foreground">{currentWorkspace.niche}</span>
@@ -239,14 +237,15 @@ export function Header() {
           </Badge>
         )}
 
-        <button
+        <Button 
+          variant="ghost" 
+          size="icon" 
           onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-white/8 transition-colors text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground hover:bg-secondary/80 rounded-lg border border-white/10 transition-colors"
+          title={isDark ? "Ativar light mode" : "Ativar dark mode"}
         >
-          {isDark
-            ? <Sun size={16} />
-            : <Moon size={16} />}
-        </button>
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </Button>
 
         <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
           <Bell className="w-5 h-5" />
