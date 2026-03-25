@@ -1,4 +1,4 @@
-// Resolve: checkout, webhook Asaas, invite de membros e knowledge base
+// Resolve: checkout, webhook Asaas, invite de membros, knowledge base e grafo de conhecimento
 //
 // Rotas:
 //   POST /api/billing?action=checkout    → cria assinatura Asaas
@@ -6,6 +6,9 @@
 //   POST /api/billing?action=invite      → manda email de convite real
 //   GET  /api/billing?action=knowledge   → lista arquivos do bot
 //   DELETE /api/billing?action=knowledge&id=xxx → remove arquivo
+//   GET  /api/billing?action=knowledge-graph&leadId=X → nós do grafo do lead
+//   POST /api/billing?action=knowledge-graph&leadId=X → cria nó manual
+//   DELETE /api/billing?action=knowledge-graph&nodeId=X → remove nó
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -251,5 +254,118 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true });
   }
 
+  // ── KNOWLEDGE GRAPH — Grafo de Conhecimento do Lead ───────────────────────
+  if (action === "knowledge-graph") {
+    const leadId = req.query.leadId || req.body?.leadId;
+    const method = req.method;
+
+    if (method === "GET" && leadId) {
+      const { data: nodes } = await supabaseAdmin
+        .from("concept_graph")
+        .select("*")
+        .eq("workspace_id", workspaceId)
+        .eq("lead_id", leadId)
+        .order("created_at", { ascending: true });
+
+      if (!nodes || nodes.length === 0) {
+        const { data: lead } = await supabaseAdmin
+          .from("leads")
+          .select("name, intent, stage, lead_temperature, urgency_level, pain_point, estimated_value, notes")
+          .eq("id", leadId)
+          .single();
+
+        if (lead) {
+          const baseNodes = buildBaseGraph(lead, leadId, workspaceId);
+          const { data: inserted } = await supabaseAdmin
+            .from("concept_graph")
+            .insert(baseNodes)
+            .select();
+          return res.status(200).json({ nodes: inserted || baseNodes, edges: buildEdges(inserted || baseNodes) });
+        }
+      }
+
+      return res.status(200).json({ nodes: nodes || [], edges: buildEdges(nodes || []) });
+    }
+
+    if (method === "POST") {
+      const { label, type, value, source, connected_to } = req.body;
+
+      const { data: newNode } = await supabaseAdmin
+        .from("concept_graph")
+        .insert({
+          workspace_id: workspaceId,
+          lead_id: leadId,
+          label,
+          node_type: type || "manual",
+          value: value || "",
+          confidence: source === "ia" ? 0.85 : 1.0,
+          source: source || "manual",
+          connected_to: connected_to || [],
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (connected_to?.length > 0) {
+        for (const targetId of connected_to) {
+          const { data: target } = await supabaseAdmin
+            .from("concept_graph")
+            .select("connected_to")
+            .eq("id", targetId)
+            .single();
+          if (target) {
+            await supabaseAdmin
+              .from("concept_graph")
+              .update({ connected_to: [...(target.connected_to || []), newNode.id] })
+              .eq("id", targetId);
+          }
+        }
+      }
+
+      return res.status(201).json(newNode);
+    }
+
+    if (method === "DELETE") {
+      const nodeId = req.query.nodeId;
+      await supabaseAdmin.from("concept_graph").delete().eq("id", nodeId).eq("workspace_id", workspaceId);
+      return res.status(200).json({ deleted: true });
+    }
+  }
+
   return res.status(400).json({ error: "Ação inválida" });
+}
+
+// ─── helpers do grafo de conhecimento ─────────────────────────────────────────
+
+function buildBaseGraph(lead, leadId, workspaceId) {
+  const now = new Date().toISOString();
+  const nicheMap = {
+    imovel:   { budget: "R$ 50k–500k",            need: "Fechar mais vendas no WhatsApp", timing: "30–60 dias" },
+    clinica:  { budget: "R$ 3k–15k por paciente",  need: "Reduzir no-show e aumentar agendamentos", timing: "7–30 dias" },
+    academia: { budget: "R$ 100–300/mês por aluno", need: "Reter alunos e vender planos", timing: "Imediato" },
+    default:  { budget: "A identificar",            need: "Automatizar atendimento no WhatsApp", timing: "A identificar" },
+  };
+  const intent = (lead.intent || "").toLowerCase();
+  const nicheKey = Object.keys(nicheMap).find((k) => intent.includes(k)) || "default";
+  const niche = nicheMap[nicheKey];
+
+  return [
+    { workspace_id: workspaceId, lead_id: leadId, label: lead.name || "Lead", node_type: "identity", value: `Estágio: ${lead.stage}`, confidence: 1.0, source: "ia", connected_to: [], is_central: true, created_at: now },
+    { workspace_id: workspaceId, lead_id: leadId, label: "Budget", node_type: "bant", value: lead.estimated_value ? `R$ ${lead.estimated_value}` : niche.budget, confidence: lead.estimated_value ? 0.95 : 0.6, source: "ia", connected_to: [], created_at: now },
+    { workspace_id: workspaceId, lead_id: leadId, label: "Decisor", node_type: "bant", value: "A confirmar", confidence: 0.4, source: "ia", connected_to: [], created_at: now },
+    { workspace_id: workspaceId, lead_id: leadId, label: "Dor principal", node_type: "bant", value: lead.pain_point || niche.need, confidence: lead.pain_point ? 0.9 : 0.65, source: "ia", connected_to: [], created_at: now },
+    { workspace_id: workspaceId, lead_id: leadId, label: "Timing", node_type: "bant", value: lead.urgency_level === "alta" ? "Urgente" : niche.timing, confidence: lead.urgency_level ? 0.85 : 0.5, source: "ia", connected_to: [], created_at: now },
+    { workspace_id: workspaceId, lead_id: leadId, label: "Probabilidade", node_type: "prediction", value: lead.lead_temperature === "quente" ? "72%" : lead.lead_temperature === "morno" ? "41%" : "18%", confidence: 0.8, source: "ia", connected_to: [], created_at: now },
+    { workspace_id: workspaceId, lead_id: leadId, label: "Próxima ação", node_type: "prediction", value: "Apresentar proposta", confidence: 0.75, source: "ia", connected_to: [], created_at: now },
+    { workspace_id: workspaceId, lead_id: leadId, label: "Risco de perda", node_type: "prediction", value: lead.lead_temperature === "frio" ? "Alto — sem resposta há +48h" : "Baixo", confidence: 0.7, source: "ia", connected_to: [], created_at: now },
+  ];
+}
+
+function buildEdges(nodes) {
+  if (!nodes?.length) return [];
+  const central = nodes.find((n) => n.is_central) || nodes[0];
+  if (!central) return [];
+  return nodes
+    .filter((n) => n.id !== central.id)
+    .map((n) => ({ source: central.id, target: n.id, type: n.node_type }));
 }
