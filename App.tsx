@@ -16,10 +16,10 @@ import Converted from "@/pages/Converted";
 import Bot from "@/pages/Bot";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
-import Checkout from "@/pages/Checkout";
-import Plans from "@/pages/Plans";
 import Secretario from "@/pages/Secretario";
+import ProspeccaoMassa from "@/pages/ProspeccaoMassa";
 import Pagamentos from "@/pages/Pagamentos";
+import Plans from "@/pages/Plans";
 import LeadDashboard from "@/pages/LeadDashboard";
 import Onboarding from "@/pages/Onboarding";
 
@@ -43,11 +43,11 @@ function App() {
             <Route path="/follow-ups" element={<FollowUps />} />
             <Route path="/converted" element={<Converted />} />
             <Route path="/bot" element={<Bot />} />
-            <Route path="/pagamentos" element={<Pagamentos />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/plans" element={<Plans />} />
             <Route path="/secretario" element={<Secretario />} />
+            <Route path="/prospeccao" element={<ProspeccaoMassa />} />
+            <Route path="/pagamentos" element={<Pagamentos />} />
+            <Route path="/plans" element={<Plans />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/overview" replace />} />
