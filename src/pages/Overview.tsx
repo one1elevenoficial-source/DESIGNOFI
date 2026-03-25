@@ -142,62 +142,111 @@ export default function Overview() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card className="bg-card/50 border-border hover:border-info/30 transition-colors">
+        {/* Total Mensagens */}
+        <Card
+          className="bg-card/50 transition-colors"
+          style={{ border: '1px solid rgba(255,215,0,0.25)', background: 'linear-gradient(135deg, rgba(255,215,0,0.04) 0%, transparent 100%)' }}
+        >
           <CardContent className="pt-5">
             <div className="flex items-start justify-between">
               <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-info" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-foreground mt-3">{totalMessages.toLocaleString('pt-BR')}</p>
+            <p
+              className="text-2xl font-bold mt-3"
+              style={{ color: '#FFD700', textShadow: '0 0 20px rgba(255,215,0,0.5), 0 0 40px rgba(255,215,0,0.2)' }}
+            >
+              {totalMessages.toLocaleString('pt-BR')}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Total Mensagens</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card/50 border-border hover:border-info/30 transition-colors">
+        {/* Leads Ativos */}
+        <Card
+          className="bg-card/50 transition-colors"
+          style={{ border: '1px solid rgba(255,215,0,0.25)', background: 'linear-gradient(135deg, rgba(255,215,0,0.04) 0%, transparent 100%)' }}
+        >
           <CardContent className="pt-5">
             <div className="flex items-start justify-between">
               <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
                 <Zap className="w-5 h-5 text-info" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-info mt-3">{activeLeads}</p>
+            <p
+              className="text-2xl font-bold mt-3"
+              style={{ color: '#FFD700', textShadow: '0 0 20px rgba(255,215,0,0.5), 0 0 40px rgba(255,215,0,0.2)' }}
+            >
+              {activeLeads}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Leads Ativos</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card/50 border-border hover:border-success/30 transition-colors">
+        {/* Taxa de Conversão */}
+        <Card
+          className="bg-card/50 transition-colors"
+          style={{ border: '1px solid rgba(255,215,0,0.25)', background: 'linear-gradient(135deg, rgba(255,215,0,0.04) 0%, transparent 100%)' }}
+        >
           <CardContent className="pt-5">
             <div className="flex items-start justify-between">
               <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
                 <Target className="w-5 h-5 text-success" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-success mt-3">{conversionRate.toFixed(1)}%</p>
+            <p
+              className="text-2xl font-bold mt-3"
+              style={{ color: '#FFD700', textShadow: '0 0 20px rgba(255,215,0,0.5), 0 0 40px rgba(255,215,0,0.2)' }}
+            >
+              {conversionRate.toFixed(1)}%
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Taxa de Conversão</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card/50 border-border hover:border-warning/30 transition-colors">
+        {/* Quase Fechando */}
+        <Card
+          className="bg-card/50 transition-colors"
+          style={{ border: '1px solid rgba(255,215,0,0.25)', background: 'linear-gradient(135deg, rgba(255,215,0,0.04) 0%, transparent 100%)' }}
+        >
           <CardContent className="pt-5">
             <div className="flex items-start justify-between">
               <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
                 <Trophy className="w-5 h-5 text-warning" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-warning mt-3">{hotLeads}</p>
+            <p
+              className="text-2xl font-bold mt-3"
+              style={{ color: '#FFD700', textShadow: '0 0 20px rgba(255,215,0,0.5), 0 0 40px rgba(255,215,0,0.2)' }}
+            >
+              {hotLeads}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Quase Fechando</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-card/50 border-border hover:border-success/30 transition-colors">
+        {/* Total Conversões — gold-pulse */}
+        <Card
+          className="bg-card/50 transition-colors"
+          style={{
+            border: '1px solid rgba(255,215,0,0.25)',
+            background: 'linear-gradient(135deg, rgba(255,215,0,0.04) 0%, transparent 100%)',
+            boxShadow: '0 0 20px rgba(255,215,0,0.06)',
+          }}
+        >
           <CardContent className="pt-5">
             <div className="flex items-start justify-between">
               <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-success" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-success mt-3">{totalConversions}</p>
+            <p
+              className="text-2xl font-bold mt-3 gold-pulse-text"
+              style={{ color: '#FFD700' }}
+            >
+              {totalConversions}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">Total Conversões</p>
           </CardContent>
         </Card>

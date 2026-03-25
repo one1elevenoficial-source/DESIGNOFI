@@ -118,7 +118,6 @@ export default function Settings() {
         .getPublicUrl(path);
       const url = data.publicUrl;
       setLogoUrl(url);
-      // Salva logo_url no workspace
       await supabase
         .from('workspaces')
         .update({ logo_url: url })
@@ -127,6 +126,20 @@ export default function Settings() {
       console.error('Logo upload error:', e);
     } finally {
       setLogoUploading(false);
+    }
+  }
+
+  async function handleAvatarUpload(file: File) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const ext = file.name.split('.').pop();
+      const path = `${currentWorkspace.id}/${user.id}.${ext}`;
+      await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+      await supabase.from('user_profiles').update({ avatar_url: publicUrl }).eq('id', user.id);
+    } catch (e) {
+      console.error('Avatar upload error:', e);
     }
   }
 
@@ -236,15 +249,6 @@ export default function Settings() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Workspace ID</label>
-                <Input
-                  value={currentWorkspace.id}
-                  readOnly
-                  className="bg-secondary border-border font-mono text-xs text-muted-foreground"
-                />
               </div>
 
               <Button onClick={handleSave} disabled={saving} className="btn-premium">

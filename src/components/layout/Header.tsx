@@ -1,4 +1,4 @@
-import { Bell, Search, ChevronDown, Building2, LogOut, User } from "lucide-react";
+import { Bell, Search, ChevronDown, Building2, LogOut, User, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,17 @@ export function Header() {
   const [searchValue, setSearchValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const [isDark, setIsDark] = useState(
+    () => localStorage.getItem('theme') !== 'light'
+  );
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    document.documentElement.classList.toggle('light', !next);
+  };
 
   const displayName = profile?.full_name || profile?.email || "Usuário";
   const initials = displayName
@@ -227,6 +238,15 @@ export function Header() {
             DEMO MODE
           </Badge>
         )}
+
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg hover:bg-white/8 transition-colors text-muted-foreground hover:text-foreground"
+        >
+          {isDark
+            ? <Sun size={16} />
+            : <Moon size={16} />}
+        </button>
 
         <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
           <Bell className="w-5 h-5" />

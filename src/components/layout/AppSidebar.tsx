@@ -15,11 +15,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Target,
+  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/AuthContext';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
+import { Logo } from '@/components/Logo';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Overview', path: '/overview' },
@@ -31,6 +34,9 @@ const navItems = [
   { icon: Bot, label: 'Bot', path: '/bot' },
   { icon: Users, label: 'Membros', path: '/clients', agencyOnly: true },
   { icon: Smartphone, label: 'Instâncias', path: '/instances' },
+  { icon: Bot, label: 'Secretário IA', path: '/secretario' },
+  { icon: Target, label: 'Prospecção', path: '/prospeccao' },
+  { icon: DollarSign, label: 'Pagamentos', path: '/pagamentos' },
   { icon: Settings, label: 'Configurações', path: '/settings' },
 ];
 
@@ -51,14 +57,10 @@ export function AppSidebar() {
     >
       {/* Logo */}
       <div className={cn('p-4 border-b border-sidebar-border flex items-center', collapsed ? 'justify-center' : 'gap-3')}>
-        <div className="w-9 h-9 rounded-lg bg-gradient-premium flex items-center justify-center shadow-glow">
-          <Sparkles className="w-5 h-5 text-primary-foreground" />
-        </div>
-        {!collapsed && (
-          <div className="flex flex-col">
-            <span className="font-display font-bold text-foreground text-lg tracking-tight">{displayName}</span>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Enterprise</span>
-          </div>
+        {collapsed ? (
+          <Logo size={32} showText={false} />
+        ) : (
+          <Logo size={32} showText={true} />
         )}
       </div>
 

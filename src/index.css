@@ -95,6 +95,26 @@
   .dark {
     /* dark-first */
   }
+
+  .light {
+    --background: 0 0% 96%;
+    --foreground: 0 0% 7%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+    --secondary: 0 0% 92%;
+    --secondary-foreground: 0 0% 7%;
+    --muted: 0 0% 88%;
+    --muted-foreground: 0 0% 45%;
+    --border: 0 0% 0% / 0.1;
+    --input: 0 0% 0% / 0.12;
+    --sidebar-background: 0 0% 94%;
+    --sidebar-foreground: 0 0% 30%;
+    --sidebar-border: 0 0% 0% / 0.1;
+    --sidebar-accent: 0 0% 88%;
+    --sidebar-accent-foreground: 0 0% 7%;
+  }
 }
 
 @layer base {
@@ -350,6 +370,29 @@
 
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes gold-pulse {
+    0%, 100% { text-shadow: 0 0 10px rgba(255,215,0,0.4); }
+    50%       { text-shadow: 0 0 30px rgba(255,215,0,0.9), 0 0 60px rgba(255,215,0,0.4); }
+  }
+
+  .gold-pulse-text {
+    animation: gold-pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes logo-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.6; }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 }
 

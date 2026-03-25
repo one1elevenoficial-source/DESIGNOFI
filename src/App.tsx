@@ -16,6 +16,12 @@ import Converted from "@/pages/Converted";
 import Bot from "@/pages/Bot";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
+import Secretario from "@/pages/Secretario";
+import ProspeccaoMassa from "@/pages/ProspeccaoMassa";
+import Pagamentos from "@/pages/Pagamentos";
+import Plans from "@/pages/Plans";
+import LeadDashboard from "@/pages/LeadDashboard";
+import Onboarding from "@/pages/Onboarding";
 
 function App() {
   return (
@@ -24,10 +30,12 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/overview" element={<Overview />} />
             <Route path="/leads" element={<Leads />} />
+            <Route path="/leads/:id" element={<LeadDashboard />} />
             <Route path="/pipeline" element={<Pipeline />} />
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/instances" element={<Instances />} />
@@ -36,6 +44,10 @@ function App() {
             <Route path="/converted" element={<Converted />} />
             <Route path="/bot" element={<Bot />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/secretario" element={<Secretario />} />
+            <Route path="/prospeccao" element={<ProspeccaoMassa />} />
+            <Route path="/pagamentos" element={<Pagamentos />} />
+            <Route path="/plans" element={<Plans />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/overview" replace />} />

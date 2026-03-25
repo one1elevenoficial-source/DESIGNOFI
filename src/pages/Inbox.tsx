@@ -1,13 +1,21 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Send, UserPlus, Image, Mic, MoreHorizontal, ChevronDown, ExternalLink } from 'lucide-react';
+import { Search, Send, Image, Mic, MoreHorizontal, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, type Lead, type Message } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 type Conversation = {
   id: string;
@@ -168,6 +176,40 @@ export default function Inbox() {
     setSummary({ context, objection, tone, hoursWithoutResponse });
   }, [messagesQuery.data]);
 
+  const handleTransferToHuman = async (leadId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase
+      .from('user_profiles').select('full_name').eq('id', user!.id).single();
+    await supabase.from('leads').update({
+      human_attending:       true,
+      human_attending_by:    profile?.full_name || 'Atendente',
+      human_attending_since: new Date().toISOString(),
+    }).eq('id', leadId);
+    await supabase.from('handoff_log').insert({
+      lead_id:      leadId,
+      triggered_by: 'manual',
+      action:       'handoff',
+      agent_name:   profile?.full_name || 'Atendente',
+    }).maybeSingle();
+    qc.invalidateQueries({ queryKey: ['leads'] });
+  };
+
+  const handleReturnToBot = async (leadId: string) => {
+    await supabase.from('leads').update({
+      human_attending:       false,
+      human_attending_by:    null,
+      human_attending_since: null,
+    }).eq('id', leadId);
+    qc.invalidateQueries({ queryKey: ['leads'] });
+  };
+
+  const handleResolve = async (leadId: string) => {
+    await supabase.from('leads')
+      .update({ conversation_status: 'resolved' })
+      .eq('id', leadId);
+    qc.invalidateQueries({ queryKey: ['leads'] });
+  };
+
   return (
     <div className="h-[calc(100vh-8rem)] flex gap-6 animate-fade-in">
       {/* Conversations List */}
@@ -216,6 +258,7 @@ export default function Inbox() {
               <div
                 key={conv.id}
                 onClick={() => setSelected(conv.id)}
+                onDoubleClick={() => navigate(`/leads/${conv.id}`)}
                 className={cn(
                   'flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors',
                   selectedConversation?.id === conv.id
@@ -311,9 +354,41 @@ export default function Inbox() {
                 <UserPlus className="w-4 h-4 mr-2" />
                 Transferir
               </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover border-border w-48">
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 text-sm"
+                    onClick={() => navigate(`/leads/${selectedConversation.id}`)}
+                  >
+                    📋 Ver perfil completo
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-border" />
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 text-sm"
+                    onClick={() => handleTransferToHuman(selectedConversation.id)}
+                  >
+                    👤 Transferir para humano
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 text-sm"
+                    onClick={() => handleReturnToBot(selectedConversation.id)}
+                  >
+                    🤖 Devolver ao bot
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-border" />
+                  <DropdownMenuItem
+                    className="cursor-pointer gap-2 text-sm text-success focus:text-success"
+                    onClick={() => handleResolve(selectedConversation.id)}
+                  >
+                    ✅ Marcar como resolvido
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
